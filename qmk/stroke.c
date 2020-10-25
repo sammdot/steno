@@ -9,29 +9,29 @@
 #include "sd/pff.h"
 #endif
 
-header_t _header;
-child_t _child;
+// header_t _header;
+// child_t _child;
 char _buf[128];
-#ifdef USE_SPI_FLASH
-static uint32_t flash_addr = 0;
-#else
-FATFS fat_fs;
-#endif
+// #ifdef USE_SPI_FLASH
+// static uint32_t flash_addr = 0;
+// #else
+// FATFS fat_fs;
+// #endif
 
-void seek(uint32_t addr) {
-#ifdef USE_SPI_FLASH
-#ifdef STENO_DEBUG_FLASH
-    steno_debug_ln("seek: %X -> %X", flash_addr, addr);
-#endif
-    flash_addr = addr;
-#else
-#ifdef STENO_DEBUG_FLASH
-    steno_debug_ln("seek: %X", pf_lseek(addr));
-#else
-    pf_lseek(addr);
-#endif
-#endif
-}
+// void seek(uint32_t addr) {
+// #ifdef USE_SPI_FLASH
+// #ifdef STENO_DEBUG_FLASH
+//     steno_debug_ln("seek: %X -> %X", flash_addr, addr);
+// #endif
+//     flash_addr = addr;
+// #else
+// #ifdef STENO_DEBUG_FLASH
+//     steno_debug_ln("seek: %X", pf_lseek(addr));
+// #else
+//     pf_lseek(addr);
+// #endif
+// #endif
+// }
 
 void read_string(void) {
 #ifdef USE_SPI_FLASH
@@ -43,32 +43,32 @@ void read_string(void) {
     _buf[_header.entry_len] = 0;
 }
 
-void read_header(void) {
-#ifdef STENO_DEBUG_FLASH
-    steno_debug("read_header()");
-#endif
-#ifdef USE_SPI_FLASH
-    flash_read(flash_addr, (uint8_t *) &_header, sizeof(header_t));
-    seek(flash_addr + sizeof(header_t));
-#else
-    UINT br;
-    pf_read(&_header, sizeof(header_t), &br);
-#endif
+// void read_header(void) {
+// #ifdef STENO_DEBUG_FLASH
+//     steno_debug("read_header()");
+// #endif
+// #ifdef USE_SPI_FLASH
+//     flash_read(flash_addr, (uint8_t *) &_header, sizeof(header_t));
+//     seek(flash_addr + sizeof(header_t));
+// #else
+//     UINT br;
+//     pf_read(&_header, sizeof(header_t), &br);
+// #endif
 
-#ifdef STENO_DEBUG_FLASH
-    steno_debug(" -> .node_num = %X, .entry_len = %u", _header.node_num, _header.entry_len);
-#endif
-}
+// #ifdef STENO_DEBUG_FLASH
+//     steno_debug(" -> .node_num = %X, .entry_len = %u", _header.node_num, _header.entry_len);
+// #endif
+// }
 
-void read_child(void) {
-#ifdef USE_SPI_FLASH
-    flash_read(flash_addr, (uint8_t *) &_child, sizeof(child_t));
-    seek(flash_addr + sizeof(child_t));
-#else
-    UINT br;
-    pf_read(&_child, sizeof(child_t), &br);
-#endif
-}
+// void read_child(void) {
+// #ifdef USE_SPI_FLASH
+//     flash_read(flash_addr, (uint8_t *) &_child, sizeof(child_t));
+//     seek(flash_addr + sizeof(child_t));
+// #else
+//     UINT br;
+//     pf_read(&_child, sizeof(child_t), &br);
+// #endif
+// }
 
 uint32_t hash_stroke(uint32_t stroke) {
     uint32_t hash = 0x811c9dc5;
@@ -83,32 +83,51 @@ uint32_t hash_stroke(uint32_t stroke) {
     return hash;
 }
 
-// Find a stroke in the children of a specific node
-uint32_t node_find_stroke(uint32_t header_ptr, uint32_t stroke) {
-    seek(header_ptr);
-    read_header();
-    uint8_t max_collisions;
-    uint32_t children_ptr = header_ptr + sizeof(header_t) + _header.entry_len;
-    if (_header.node_num < MAX_COLLISIONS) {
-        seek(children_ptr);
-        max_collisions = _header.node_num;
-    } else {
-        uint32_t child_ptr = children_ptr + (hash_stroke(stroke) % _header.node_num) * sizeof(child_t);
-        seek(child_ptr);
-        max_collisions = MAX_COLLISIONS;
-    }
-
-    for (uint8_t collisions = 0; collisions < max_collisions; collisions ++) {
-        read_child();
-        if (stroke == _child.stroke) {
-            return _child.addr;
-        }
-        if (_child.stroke == 0xffffff) {
-            return 0;
-        }
-    }
-    return 0;
+uint32_t hashCode(struct table *t,int key){
+    if(key<0)
+        return -(key%t->size);
+    return key%t->size;
 }
+
+uint32_t hash_find_stroke(struct table *t, int key){
+    int pos = hashCode(t,key);
+    struct node *list = t->list[pos];
+    struct node *temp = list;
+    while(temp){
+        if(temp->key==key){
+            return temp->val;
+        }
+        temp = temp->next;
+    }
+    return -1;
+}
+
+// // Find a stroke in the children of a specific node
+// uint32_t node_find_stroke(uint32_t header_ptr, uint32_t stroke) {
+//     seek(header_ptr);
+//     read_header();
+//     uint8_t max_collisions;
+//     uint32_t children_ptr = header_ptr + sizeof(header_t) + _header.entry_len;
+//     if (_header.node_num < MAX_COLLISIONS) {
+//         seek(children_ptr);
+//         max_collisions = _header.node_num;
+//     } else {
+//         uint32_t child_ptr = children_ptr + (hash_stroke(stroke) % _header.node_num) * sizeof(child_t);
+//         seek(child_ptr);
+//         max_collisions = MAX_COLLISIONS;
+//     }
+
+//     for (uint8_t collisions = 0; collisions < max_collisions; collisions ++) {
+//         read_child();
+//         if (stroke == _child.stroke) {
+//             return _child.addr;
+//         }
+//         if (_child.stroke == 0xffffff) {
+//             return 0;
+//         }
+//     }
+//     return 0;
+// }
 
 // Returns if the stroke contains only digits
 bool stroke_to_string(uint32_t stroke, char *buf, uint8_t *ret_len) {
@@ -178,53 +197,53 @@ uint32_t qmk_chord_to_stroke(uint8_t chord[6]) {
     return stroke;
 }
 
-// Searches on multiple nodes, for use with the top level, and tries to find the longest match
-void search_on_nodes(search_node_t *nodes, uint8_t *size, uint32_t stroke, uint32_t *max_level_node, uint8_t *max_level) {
-#ifdef STENO_DEBUG_STROKE
-    steno_debug_ln("search_on_nodes()");
-#endif
-    uint8_t _size = *size;
-    *size = 0;
-    for (uint8_t i = 0; i <= _size; i ++) {
-        bool last = i == _size;
-        // Search root node at the end
-        uint32_t node = last ? 0 : nodes[i].node;
-        uint32_t next_node = node_find_stroke(node, stroke);
-#ifdef STENO_DEBUG_STROKE
-        char buf[24];
-        stroke_to_string(stroke, buf, NULL);
-        steno_debug_ln("  %lX + %s -> %lX", node, nrf_log_push(buf), next_node);
-#endif
-        if (!next_node) {
-            if (!last) {
-                i = _size - 1;
-            }
-            continue;
-        }
-        seek(next_node);
-        read_header();
-        uint32_t node_num = _header.node_num;
-        uint8_t next_level = last ? 1 : nodes[i].level + 1;
-        if (_header.attrs.present && next_level > *max_level) {
-            *max_level = next_level;
-            *max_level_node = next_node;
-        }
-#ifdef STENO_DEBUG_STROKE
-        steno_debug_ln("    node_num: %lu, next_level: %u", node_num, next_level);
-#endif
-        if (node_num) {
-            nodes[*size].node = next_node;
-            nodes[*size].level = next_level;
-            (*size)++;
-            if (*size >= SEARCH_NODES_SIZE) {
-                steno_error_ln("Search nodes full!");
-                return;
-            }
-        } else {
-            return;
-        }
-    }
-#ifdef STENO_DEBUG_STROKE
-    steno_debug_ln("  -> max_level: %u, max_level_node: %lX", *max_level, *max_level_node);
-#endif
-}
+// // Searches on multiple nodes, for use with the top level, and tries to find the longest match
+// void search_on_nodes(search_node_t *nodes, uint8_t *size, uint32_t stroke, uint32_t *max_level_node, uint8_t *max_level) {
+// #ifdef STENO_DEBUG_STROKE
+//     steno_debug_ln("search_on_nodes()");
+// #endif
+//     uint8_t _size = *size;
+//     *size = 0;
+//     for (uint8_t i = 0; i <= _size; i ++) {
+//         bool last = i == _size;
+//         // Search root node at the end
+//         uint32_t node = last ? 0 : nodes[i].node;
+//         uint32_t next_node = node_find_stroke(node, stroke);
+// #ifdef STENO_DEBUG_STROKE
+//         char buf[24];
+//         stroke_to_string(stroke, buf, NULL);
+//         steno_debug_ln("  %lX + %s -> %lX", node, nrf_log_push(buf), next_node);
+// #endif
+//         if (!next_node) {
+//             if (!last) {
+//                 i = _size - 1;
+//             }
+//             continue;
+//         }
+//         seek(next_node);
+//         read_header();
+//         uint32_t node_num = _header.node_num;
+//         uint8_t next_level = last ? 1 : nodes[i].level + 1;
+//         if (_header.attrs.present && next_level > *max_level) {
+//             *max_level = next_level;
+//             *max_level_node = next_node;
+//         }
+// #ifdef STENO_DEBUG_STROKE
+//         steno_debug_ln("    node_num: %lu, next_level: %u", node_num, next_level);
+// #endif
+//         if (node_num) {
+//             nodes[*size].node = next_node;
+//             nodes[*size].level = next_level;
+//             (*size)++;
+//             if (*size >= SEARCH_NODES_SIZE) {
+//                 steno_error_ln("Search nodes full!");
+//                 return;
+//             }
+//         } else {
+//             return;
+//         }
+//     }
+// #ifdef STENO_DEBUG_STROKE
+//     steno_debug_ln("  -> max_level: %u, max_level_node: %lX", *max_level, *max_level_node);
+// #endif
+// }
