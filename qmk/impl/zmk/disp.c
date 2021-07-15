@@ -23,6 +23,10 @@ typedef struct {
     lv_obj_t *status_cont;
     lv_obj_t *tape_cont;
 
+#if STENO_COMMAND_DISPLAY
+    lv_obj_t *commands;
+#endif
+
     lv_obj_t *tape;
     lv_obj_t *last_entry;
 } steno_screen_t;
@@ -33,6 +37,19 @@ lv_style_t style, tape_style;
 
 LV_FONT_DECLARE(iosevka_8);
 LV_FONT_DECLARE(iosevka_16);
+
+#if STENO_COMMAND_DISPLAY
+static const char *COMMANDS_MSG =
+    "COMMANDS\n\n"
+    "  T-  Dictionary update\n"
+    "  K-  Steno settings\n\n"
+    "  -E  Connect via Bluetooth\n"
+    "  -R    BT profile 0\n"
+    "  -B    BT profile 1\n"
+    "  -G    BT profile 2\n"
+    "  -S    Clear profile\n"
+    "  -U  Connect via USB\n";
+#endif
 
 #define TAPE_LINES ((CONFIG_LVGL_VER_RES_MAX / 16) - 4)
 
@@ -80,6 +97,14 @@ lv_obj_t *zmk_display_status_screen() {
     lv_label_set_text(steno_screen.tape, "STOIN");
     lv_obj_align(steno_screen.tape, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
     lv_obj_set_height(steno_screen.tape, TAPE_LINES * 16);
+
+#if STENO_COMMAND_DISPLAY
+    steno_screen.commands = lv_label_create(steno_screen.tape_cont, NULL);
+    lv_label_set_text(steno_screen.commands, COMMANDS_MSG);
+    lv_obj_align(steno_screen.commands, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+    lv_obj_set_height(steno_screen.commands, TAPE_LINES * 16);
+    lv_obj_set_hidden(steno_screen.commands, true);
+#endif
 
     steno_screen.last_entry = lv_label_create(steno_screen.tape_cont, NULL);
     lv_label_set_text(steno_screen.last_entry, "\n");
@@ -352,3 +377,20 @@ void disp_unshow_error(void) {
 }
 
 #endif /* STENO_READONLY */
+
+#if STENO_COMMAND_DISPLAY
+
+void disp_show_command_layer(void) {
+    steno_debug_ln("showing command layer");
+    lv_obj_set_hidden(steno_screen.commands, false);
+    lv_obj_set_hidden(steno_screen.tape, true);
+    lv_obj_set_hidden(steno_screen.last_entry, true);
+}
+
+void disp_unshow_command_layer(void) {
+    lv_obj_set_hidden(steno_screen.commands, true);
+    lv_obj_set_hidden(steno_screen.tape, false);
+    lv_obj_set_hidden(steno_screen.last_entry, false);
+}
+
+#endif /* STENO_COMMAND_DISPLAY */

@@ -29,6 +29,11 @@ config ZMK_EMBEDDED_STENO_STROKE_DISPLAY
     depends on !ZMK_EMBEDDED_STENO_NOUI
     default n
 
+config ZMK_EMBEDDED_STENO_COMMAND_DISPLAY
+    bool "Enables command display when the command layer is active"
+    depends on !ZMK_EMBEDDED_STENO_NOUI
+    default n
+
 menu "Debugging"
 
 config ZMK_EMBEDDED_STENO_DEBUG

@@ -16,6 +16,11 @@ else()
 	target_sources(app PRIVATE dict_editing.c freemap.c)
 endif()
 
+if (CONFIG_ZMK_EMBEDDED_STENO_COMMAND_DISPLAY)
+    target_compile_definitions(app PRIVATE -DSTENO_COMMAND_DISPLAY)
+    target_sources(app PRIVATE impl/zmk/layer_change.c)
+endif()
+
 # Don't need MSD
 
 if (CONFIG_ZMK_EMBEDDED_STENO_STROKE_DISPLAY)

@@ -24,3 +24,8 @@ void disp_unshow_error(void);
 void disp_stroke_edit_add(const uint32_t stroke, const uint8_t num_strokes);
 void disp_stroke_edit_remove(const uint32_t last, const uint8_t num_strokes);
 #endif
+
+#ifdef STENO_COMMAND_DISPLAY
+void disp_show_command_layer(void);
+void disp_unshow_command_layer(void);
+#endif
