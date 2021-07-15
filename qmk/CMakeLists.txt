@@ -1,5 +1,5 @@
 target_include_directories(app PRIVATE .)
-target_sources(app PRIVATE hist.c stroke.c steno.c)
+target_sources(app PRIVATE hist.c stroke.c steno.c settings.c)
 target_include_directories(app PRIVATE impl/zmk)
 target_sources(app PRIVATE impl/zmk/behavior_steno.c impl/zmk/flash.c impl/zmk/keypress.c)
 

@@ -6,6 +6,7 @@
 LOG_MODULE_REGISTER(steno, CONFIG_ZMK_EMBEDDED_STENO_LOG_LEVEL);
 #define _STENO_C_
 #endif
+#include "settings.h"
 #include "steno.h"
 #include "store.h"
 #include "hist.h"
@@ -168,8 +169,10 @@ void _ebd_steno_process_stroke(const uint32_t stroke) {
 
 // Setup the necessary stuff, init SPI flash
 void ebd_steno_init(void) {     // to avoid clashing with `steno_init` in QMK
-    hist_get(0)->state.cap = CAPS_CAP;
     store_init();
+    read_settings();
+    steno_debug_ln("start_cap: %u", settings.start_cap);
+    hist_get(0)->state.cap = settings.start_cap ? CAPS_CAP : CAPS_NORMAL;
 #ifndef STENO_NOUI
     disp_init();
 #endif
