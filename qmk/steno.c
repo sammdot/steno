@@ -171,7 +171,8 @@ void _ebd_steno_process_stroke(const uint32_t stroke) {
 void ebd_steno_init(void) {     // to avoid clashing with `steno_init` in QMK
     store_init();
     read_settings();
-    steno_debug_ln("start_cap: %u", settings.start_cap);
+    steno_debug_ln("start_cap: %u, tape_numbers: %u",
+        settings.start_cap, settings.tape_numbers);
     hist_get(0)->state.cap = settings.start_cap ? CAPS_CAP : CAPS_NORMAL;
 #ifndef STENO_NOUI
     disp_init();

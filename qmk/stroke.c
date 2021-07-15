@@ -1,6 +1,7 @@
 // To deal with operations related with strokes, and the file system
 #include <string.h>
 
+#include "settings.h"
 #include "stroke.h"
 #include "hist.h"
 #include "stdbool.h"
@@ -20,10 +21,14 @@ void hash_stroke_ptr(uint32_t *const hash, const uint8_t *const stroke) {
 }
 
 const char *STENO_KEYS = "#STKPWHRAO*EUFRPBLGTSDZ";
+const char *STENO_KEYS_WITH_NUMBERS = "#12K3W4R50*EU6R7B8G9SDZ";
 
 void stroke_to_tape(const uint32_t stroke, char *const buf) {
+    bool has_number = stroke & ((uint32_t) 1 << 22);
+
     for (uint8_t i = 0; i < strlen(STENO_KEYS); i ++) {
-        buf[i] = (stroke & ((uint32_t) 1 << (strlen(STENO_KEYS) - 1 - i))) ? STENO_KEYS[i] : ' ';
+        buf[i] = (stroke & ((uint32_t) 1 << (strlen(STENO_KEYS) - 1 - i))) ?
+            ((has_number && settings.tape_numbers) ? STENO_KEYS_WITH_NUMBERS[i] : STENO_KEYS[i]) : ' ';
     }
     buf[strlen(STENO_KEYS)] = 0;
 }
