@@ -41,14 +41,12 @@ LV_FONT_DECLARE(iosevka_16);
 #if STENO_COMMAND_DISPLAY
 static const char *COMMANDS_MSG =
     "COMMANDS\n\n"
-    "  T-  Dictionary update\n"
-    "  K-  Steno settings\n\n"
-    "  -E  Connect via Bluetooth\n"
-    "  -R    BT profile 0\n"
-    "  -B    BT profile 1\n"
-    "  -G    BT profile 2\n"
-    "  -S    Clear profile\n"
-    "  -U  Connect via USB\n";
+    "  K-  Connect via Bluetooth\n"
+    "  T-    BT profile 0\n"
+    "  P-    BT profile 1\n"
+    "  H-    BT profile 2\n"
+    "  *1    Clear profile\n"
+    "  W-  Connect via USB\n";
 #endif
 
 #define TAPE_LINES ((CONFIG_LVGL_VER_RES_MAX / 16) - 4)
