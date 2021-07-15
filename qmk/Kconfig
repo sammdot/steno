@@ -24,6 +24,11 @@ config ZMK_EMBEDDED_STENO_NOUNICODE
     bool "Disable Unicode output in the embedded steno engine"
     default n
 
+config ZMK_EMBEDDED_STENO_ALTUIFONT
+    bool "Use JetBrains Mono as UI font instead of Iosevka"
+    depends on !ZMK_EMBEDDED_STENO_NOUI
+    default n
+
 config ZMK_EMBEDDED_STENO_STROKE_DISPLAY
     bool "Enables graphical stroke display in the embedded steno engine"
     depends on !ZMK_EMBEDDED_STENO_NOUI
